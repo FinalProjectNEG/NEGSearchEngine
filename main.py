@@ -1,4 +1,8 @@
+from datetime import date, datetime
+from sqlite3.dbapi2 import Date
+
 import nltk as nltk
+import numpy as np
 from nltk.tokenize.regexp import WordPunctTokenizer
 from DB import Get_Information, Get_Graph
 from Url_Address import Url
@@ -6,6 +10,7 @@ from LSIModel import LSIModel
 import math
 from nltk.stem.porter import PorterStemmer
 
+dict_month = {"Jan":1, "Feb":2, "Mar":3, "Apr":4, "May":5, "Jun":6, "Jul":7, "Aug":8, "Sep":9, "Oct":10, "Nov":11, "Dec":12}
 
 stopwords = nltk.corpus.stopwords.words('english')
 # for tokenize the text from the page
@@ -46,7 +51,7 @@ def SSearch(query):
         # Go through all the documents in the same word(collection)
         for diction in cursor:
             document = Url(diction.get('url'), diction.get('title'), diction.get('description'),
-                           diction.get('appearance'), diction.get('word in page'))
+                           diction.get('appearance'), diction.get('word in page'), diction.get('date modified'))
 
             if document.url in dictionary.keys():
                 if dictionary.get(document.url).title != None:
@@ -90,10 +95,176 @@ def SSearch(query):
             final_score_description = math.floor(true_description * per_score_description)
             dictionary.get(key).score += final_score_description
 
+    return dictionary, final
+
+
+def checkTime(dictionary):
+
+    for key in dictionary:
+        time = dictionary.get(key).time
+        if time != None:
+            today = date.today()
+            date_information = time.split()
+            day = date_information[1]
+            month = date_information[2]
+            year = date_information[3]
+
+            date_page = date(year,dict_month[month],day)
+            year_ago_1 = date(today.year-1,today.month,today.day)
+            year_ago_10 = date(today.year-10,today.month,today.day)
+            date_today = date(today.year,today.month,today.day)
+
+            if(year_ago_1 < date_page < date_today):
+                dictionary.get(key).score += 5
+            elif (year_ago_10 < date_page < year_ago_1):
+                dictionary.get(key).score += 3
+            elif (date_page < year_ago_10):
+                dictionary.get(key).score += 2
+    return dictionary
+
+def Count_documents(word, dictionary):
+
+    #list_obj = []
+    count_element = 0
+    for key in dictionary:
+
+        #print("key == ",dictionary.get(key).dictionary_word.keys())
+        #print(dictionary.get(key).dictionary_word.keys())
+        if word in dictionary.get(key).dictionary_word.keys():
+            count_element+=1
+            #list_obj.append(dictionary.get(key))
+            #if word=="learn":
+            #    print(list_obj)
+
+    return count_element
+
+
+
+def Tf_Idf(dictionary):
+    tf_idf = {}
+    len_dict = len(dictionary.keys())
+    dic_total_words = {}
+    noOfDoc=0
+    list_of_docs_by_number={}
+    for key in dictionary:
+        #dictionary of word in body {"word": [count, tf]}
+        tokens = dictionary.get(key).dictionary_word
+        for token in tokens:
+            tf = tokens.get(token)[1]
+            # function recieve "word"
+            noDocsWordAppers = Count_documents(token, dictionary)
+            df = noDocsWordAppers/len_dict
+            idf = np.log(len_dict / (df + 1))
+            tf_idf[noOfDoc, token] = tf * idf
+        list_of_docs_by_number[noOfDoc]=key
+        noOfDoc+=1
+
+    # {"[url,word]": num, ....}
+    return tf_idf,list_of_docs_by_number
+
+
+def Calculate_DF(dictionary):
+    list_df = []
+
+    for key in dictionary:
+        list_df.extend(list(dictionary.get(key).dictionary_word.keys()))
+    return list(np.unique(list_df))
+
+
+def Convert_Vectorize(tf_idf,list_docs_byNum, dictionary):
+    len_dict = len(dictionary.keys())
+    total_vocab = Calculate_DF(dictionary)
+    total_vocab_size = len(total_vocab)
+    D = np.zeros((len_dict, total_vocab_size))
+    for i in tf_idf:
+        try:
+            #print("i[0] = ", i[0])
+            #print("i = ", i)
+            ind = total_vocab.index(i[1])
+            D[i[0]][ind] = tf_idf[i]
+            #print("doc:",list_docs_byNum[i[0]])
+        except:
+            pass
+    #print("tf_idf: ",tf_idf)
+    return D, total_vocab
+
+
+def gen_vector(tokens, total_vocab, dictionary):
+    Q = np.zeros((len(total_vocab)))
+
+    counter = nltk.Counter(tokens)
+    words_count = len(tokens)
+
+    query_weights = {}
+    len_dict = len(dictionary.keys())
+    for token in np.unique(tokens):
+
+        tf = counter[token] / words_count
+        noDocsWordAppers = Count_documents(token, dictionary)
+        df = noDocsWordAppers/len_dict
+        idf = math.log((len_dict + 1) / (df + 1))
+        # print("token = ", token)
+        # print("tf = ",tf)
+        # print("noDoc = ", noDocsWordAppers)
+        # print("df = ",df)
+        # print("idf = ", idf)
+
+        try:
+            # print(total_vocab)
+            # print("ttt = ",token)
+            ind = total_vocab.index(token)
+            # print("ind", ind)
+            Q[ind] = tf * idf
+            # print("ans: ", tf*idf)
+        except:
+            pass
+    return Q
+
+
+def cosine_sim(a, b):
+    #print("a= ",a," b= ",b)
+    # print("1: ",np.linalg.norm(a))
+    # print("2: ",np.linalg.norm(b))
+    #print("3: ", np.dot(a, b))
+    if(np.linalg.norm(a)*np.linalg.norm(b) == 0):
+        cos_sim = 0
+    else:
+        cos_sim = np.dot(a, b)/(np.linalg.norm(a)*np.linalg.norm(b))
+    return cos_sim
+
+
+def cosine_similarity(k, query, D, final, total_vocab, dictionary, list_of_docs_byNum):
+    print("Cosine Similarity")
+    tokens = final
+
+    print("\nQuery:", query)
+    print("")
+    #print(tokens)
+
+    d_cosines = []
+
+    query_vector = gen_vector(tokens, total_vocab,dictionary)
+
+    for d in D:
+        d_cosines.append(cosine_sim(query_vector, d))
+    #print("d_cos = ",d_cosines)
+    out = np.array(d_cosines).argsort()
+    #print(out)
+    for number in out:
+        link = list_of_docs_byNum.get(number)
+        dictionary.get(link).score += d_cosines[number]
+        # print("link: ", link)
+        # print("number: ",number)
+        # print("score: ",dictionary.get(link).score)
     return dictionary
 
 
 
+def matching_score(tf_idf, query):
+    query_weights = {}
+    for key in tf_idf:
+        if key[1] in query:
+            query_weights[key[0]] += tf_idf[key]
 
 
 # function get our search query and we split it and search in the database, after that we look for the link with the heighest count of word that we lookin.
@@ -181,8 +352,6 @@ def Look_up_new(dictionaryObjectRel, dictionaryObjectPartRel, DictionaryRanks):
     # and i go to restroom
 
 
-
-
 def Create_list(dictionary):
 
     New_list = []
@@ -209,18 +378,25 @@ def compute_ranks(graph):
                     newrank = newrank + d * ranks[node] / len(graph[node])
             newranks[page] = newrank
         ranks = newranks
-    return ranks
+    for key in ranks:
+        print(dictionary.get(key).score)
+        dictionary.get(key).score += ranks.get(key)
+        print(dictionary.get(key).score)
+    print("ranks: ",ranks)
+    return dictionary
 
 final_graph = {}
 graph = Get_Graph()
 for node in graph:
     #print(node)
     final_graph[node.get("_id")] = node.get("children")
-dictionary = SSearch("duckduckgo controlling")
-obj = LSIModel(dictionary)
-obj.Lsi_model()
-#dictionaryRel, dictionaryPartRel = Search_Query("come anonym answer 273")
-#ranks=compute_ranks(final_graph)
+query = "controlling duckduckgo"
+dictionary, final = SSearch(query)
+dictionary = checkTime(dictionary)
+tf_idf,list_of_docs_byNum = Tf_Idf(dictionary)
+D, total_vocab = Convert_Vectorize(tf_idf,list(list_of_docs_byNum.keys()), dictionary)
+dictionary = cosine_similarity(10, query, D, final,total_vocab,dictionary, list_of_docs_byNum)
+dictionary = compute_ranks(final_graph)
 #print(dictionaryPartRel)
 #Look_up_new(dictionaryRel,dictionaryPartRel,ranks)
 

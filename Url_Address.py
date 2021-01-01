@@ -1,12 +1,13 @@
 
 class Url:
 
-    def __init__(self, url, title, description, num_of_element, dictionary_word):
+    def __init__(self, url, title, description, num_of_element, dictionary_word,time):
 
         self.url = url
         self.title = title
         self.description = description
         self.num_of_element = num_of_element
+        self.time = time
         self.dictionary_word = dictionary_word
         self.appear_word_title = []
         self.appear_word_description = []
