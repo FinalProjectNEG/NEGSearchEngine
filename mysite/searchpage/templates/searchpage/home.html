@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NEG Search Engine</title>
+    <style>
+	    body{
+		    background-color: #0E0D0D;
+	    }
+	    img {
+		    display: block;
+		    margin-left: auto;
+		    margin-right: auto;
+		    width: 200px;
+		    height: 250px;
+	    }
+	    p{
+		    font-size:30px;
+		    font-family: "Garamond", Times, serif;
+		    color: white;
+	    }
+	    @import url("https://fonts.googleapis.com/css?family=Roboto:400,400i,700");
+
+	    * {
+		    font-family: Roboto, sans-serif;
+		    padding: 0;
+		    margin: 0;
+	    }
+	    .flexbox{
+		    text-align: center;
+	    }
+	    .search {
+		    margin: 20px;
+	    }
+
+	    .search > h3 {
+		    font-weight: normal;
+	    }
+
+	    .search > h1,
+	    .search > h3 {
+		    color: white;
+		    margin-bottom: 15px;
+		    text-shadow: 0 1px #0091c2;
+	    }
+
+	    .search > div {
+		    display: inline-block;
+		    position: relative;
+		    filter: drop-shadow(0 1px #0091c2);
+	    }
+
+	    .search > div:after {
+		    content: "";
+		    background: white;
+		    width: 4px;
+		    height: 20px;
+		    position: absolute;
+		    top: 40px;
+		    right: 2px;
+		    transform: rotate(135deg);
+	    }
+
+	    .search > div > input {
+
+	    	color: white;
+		    font-size: 20px;
+		    background: transparent;
+		    font-family: "Garamond", Times, serif;
+		    width: 25px;
+		    height: 25px;
+		    padding: 10px;
+		    border: solid 3px white;
+		    outline: none;
+		    border-radius: 35px;
+	    	transition: width 0.5s;
+	    }
+
+	    .search > div > input::placeholder {
+		    color: #efefef;
+		    opacity: 0;
+		    transition: opacity 150ms ease-out;
+	    }
+
+	    .search > div > input:focus::placeholder {
+		    opacity: 1;
+	    }
+
+	    .search > div > input:focus,
+	    .search > div > input:not(:placeholder-shown) {
+		    width: 400px;
+	    }
+
+	    .buttonSearch{
+	    	color: white;
+	    	font-family: "Garamond", Times, serif;
+	    	background-color: #0E0D0D;
+	    	text-align: center;
+	    	align-items: center;
+	    	justify-content: center;
+			vertical-align:middle;
+			display: block;
+    		height: 30px;
+    		width: 70px;
+    		margin: 0 auto;
+    		border: none;
+    		outline:none;
+ 		    font-size: 20px;
+
+
+
+	    }
+
+    </style>
+</head>
+<body>
+<form action="{% url 'searchpage:search' %}" method="post">
+	{% csrf_token %}
+	<input type="hidden" name="title" value="{{ source.title }}">
+	<img src="https://lh3.googleusercontent.com/190XKrQmG_JXIRzPRD0IiOO4ZtOd9pTgEzey-HTsSrTwOAl4jXP6XkEiq99vZRT9S9oVmAH3hVrH8Z-4xiSd2Xeyb4DfE62Mvo5q79Q0za5c8fDkIDpY_yBQKsNt1IQJ4uyh3jpq=w2400?source=screenshot.guru" alt="search engine">
+	<div class="flexbox">
+		<div class="search">
+			<p>Start your searching</p>
+			<div>
+				<input type="text" placeholder="Search . . ." name="search" id="search" required>
+			</div>
+		</div>
+	</div>
+	<input type="submit" value="Search" name="submit" class="buttonSearch">
+
+</form>
+</body>
+</html>
