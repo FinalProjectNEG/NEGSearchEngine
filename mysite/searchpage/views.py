@@ -10,11 +10,21 @@ def search_page(request):
     data = request.POST.get('search')
     print(data)
     object_search = Search(data)
-    results = object_search.Start_search()
+    if object_search != "not found":
+        results = object_search.Start_search()
+    else:
+        results = "not found"
     return render(request,'searchpage/search.html',{"dic":results,"data":data})
 
-def hh(request):
-    return render(request,'searchpage/search.html')
+def repeat(request):
+    data = request.POST.get('search')
+    print(data)
+    object_search = Search(data)
+    if object_search != "not found":
+        results = object_search.Start_search()
+    else:
+        results = "not found"
+    return render(request,'searchpage/search.html',{"dic":results,"data":data})
 
 
 def mong(request):

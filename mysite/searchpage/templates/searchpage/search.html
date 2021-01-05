@@ -7,6 +7,15 @@
 	    body{
 		    background-color: #0E0D0D;
 	    }
+	    div.container{
+   		    width: 700px;
+
+	    }
+	    a{
+	    	font-size:25px;
+		    font-family: "Garamond", Times, serif;
+		    color: darkorchid;
+	    }
 	    img {
 		    display: block;
 		    margin-left: auto;
@@ -19,15 +28,23 @@
 			top: 5px;
 
 	    }
-	    p{
-		    font-size:30px;
+	    script{
+	    	font-size:16px;
 		    font-family: "Garamond", Times, serif;
 		    color: white;
+		    word-break:  keep-all;
 	    }
-	   	td{
-		    font-size:30px;
+	    p{
+		    font-size:16px;
 		    font-family: "Garamond", Times, serif;
 		    color: white;
+		    word-break:  keep-all;
+	    }
+	    p.error{
+		    font-size:25px;
+		    font-family: "Garamond", Times, serif;
+		    color: white;
+		    word-break:  keep-all;
 	    }
 	    @import url("https://fonts.googleapis.com/css?family=Roboto:400,400i,700");
 
@@ -91,7 +108,8 @@
     </style>
 </head>
 <body>
-
+<form action="{% url 'searchpage:page' %}" method="post">
+	{% csrf_token %}
 <input type="hidden" name="title" value="{{ source.title }}">
 	<img src="https://lh3.googleusercontent.com/190XKrQmG_JXIRzPRD0IiOO4ZtOd9pTgEzey-HTsSrTwOAl4jXP6XkEiq99vZRT9S9oVmAH3hVrH8Z-4xiSd2Xeyb4DfE62Mvo5q79Q0za5c8fDkIDpY_yBQKsNt1IQJ4uyh3jpq=w2400?source=screenshot.guru" alt="search engine">
 	<div class="flexbox">
@@ -103,12 +121,22 @@
 	</div>
 	<input type="submit" value="Search" name="submit" class="buttonSearch">
 
-	{% for key,value in dic.items %}
-		<li><a href="{{key}}">{{value.title}}</a></li>
 
+	{% if dic == "not found" %}
+    	<p class="error"> no results found </p>
+   {% endif %}
+
+	{% for key,value in dic.items %}
+		<br>
+		<div class="container">
+			<li><a href="{{key}}">{{value.title}}</a></li>
+			<p id="demo1">{{value.description}}</p>
+		</div>
+		<br>
 	{% endfor %}
 	<h1 style="color:white;">
 		{{title}}
 	</h1>
+</form>
 </body>
 </html>

@@ -99,7 +99,10 @@ class Search:
         return dictionary, final
 
     def Start_search(self):
+
         dictionary, final = self.SSearch(self.query)
+        if len(dictionary) == 0:
+            return "not found"
         object_page_rank = Page_Rank(dictionary, final)
         result_ranking = object_page_rank.Start_Ranking()
         print(result_ranking)
