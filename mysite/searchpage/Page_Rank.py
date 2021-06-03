@@ -29,10 +29,10 @@ class Page_Rank:
                 newranks[page] = newrank
             ranks = newranks
         for key in ranks:
-            print(self.dictionary.get(key).score)
+            print("ooooooo "+str(key))
             self.dictionary.get(key).score += ranks.get(key)
-            print(self.dictionary.get(key).score)
-        print("ranks: ", ranks)
+           # print(self.dictionary.get(key).score)
+        #print("ranks: ", ranks)
 
     def checkTime(self):
 
@@ -41,9 +41,9 @@ class Page_Rank:
             if time != None:
                 today = date.today()
                 date_information = time.split()
-                day = date_information[1]
+                day = int(date_information[1])
                 month = date_information[2]
-                year = date_information[3]
+                year = int(date_information[3])
 
                 date_page = date(year,dict_month[month],day)
                 year_ago_1 = date(today.year-1,today.month,today.day)
@@ -61,7 +61,8 @@ class Page_Rank:
         graph = Get_Graph()
         for node in graph:
             # print(node)
-            self.final_graph[node.get("_id")] = node.get("children")
+            if(node.get("_id") in self.dictionary):
+                self.final_graph[node.get("_id")] = node.get("children")
 
     def Start_Ranking(self):
         self.Create_final_graph()

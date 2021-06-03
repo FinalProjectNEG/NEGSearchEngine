@@ -1,7 +1,7 @@
 # myapp/urls.py
 from django.conf.urls import url
 from django.urls import path, re_path
-from .views import home,search_page,hh
+from .views import home, search_page, repeat
 
 app_name = 'searchpage'
 

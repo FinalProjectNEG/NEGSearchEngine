@@ -4,7 +4,7 @@ from sqlite3.dbapi2 import Date
 import nltk as nltk
 import numpy as np
 from nltk.tokenize.regexp import WordPunctTokenizer
-from .DB import Get_Information
+from .DB import Get_Information, listDB
 from .Page_Rank import Page_Rank
 from .Url_Address import Url
 import math
@@ -44,8 +44,9 @@ class Search:
         else:
             clean = tokens.copy()
         final = [stemmer.stem(word) for word in clean]
+        final_list = listDB(final)
         print("final: ",final)
-        for word in final:
+        for word in final_list:
             cursor = Get_Information(word)
             if cursor == None:
                 continue
