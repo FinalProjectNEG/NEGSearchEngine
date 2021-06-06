@@ -85,7 +85,7 @@ class Search:
             if dictionary.get(key).title != None:
                 temp_title = dictionary.get(key).appear_word_title
                 true_title = temp_title.count(True)
-                per_score_title = float(10 / len(temp_title))
+                per_score_title = float(50 / len(temp_title))
                 final_score_title = math.floor(true_title * per_score_title)
                 dictionary.get(key).score += final_score_title
 
@@ -106,6 +106,5 @@ class Search:
             return "not found"
         object_page_rank = Page_Rank(dictionary, final)
         result_ranking = object_page_rank.Start_Ranking()
-        print(result_ranking)
         return result_ranking
 
